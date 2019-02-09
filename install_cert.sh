@@ -57,7 +57,7 @@ then
 	echo 1000 > $INTER_HOME_FOLDER/crlnumber
 	openssl genrsa -out $INTER_HOME_FOLDER/private/intermediate.key.pem 4096
 	chmod 400 $INTER_HOME_FOLDER/private/intermediate.key.pem
-	openssl req -config $INTER_HOME_FOLDER/openssl.cnf -new -sha256 -key $INTER_HOME_FOLDER/private/intermediate.key.pem -out $INTER_HOME_FOLDER/csr/intermediate.csr.pem -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$ORGANIZATION/OU=$ORGUNIT/CN=INTERCN"
+	openssl req -config $INTER_HOME_FOLDER/openssl.cnf -new -sha256 -key $INTER_HOME_FOLDER/private/intermediate.key.pem -out $INTER_HOME_FOLDER/csr/intermediate.csr.pem -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$ORGANIZATION/OU=$ORGUNIT/CN=$INTERCN"
 	openssl ca -batch -config $ROOT_HOME_FOLDER/openssl.cnf -extensions v3_intermediate_ca -days 3650 -notext -md sha256 -in $INTER_HOME_FOLDER/csr/intermediate.csr.pem -out $INTER_HOME_FOLDER/certs/intermediate.cert.pem
 	chmod 444 $INTER_HOME_FOLDER/certs/intermediate.cert.pem
 	openssl x509 -noout -text -in $INTER_HOME_FOLDER/certs/intermediate.cert.pem
