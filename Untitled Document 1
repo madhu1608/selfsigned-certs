@@ -7,15 +7,44 @@ ORGANIZATION="Partners Self Signed"
 ORGUNIT="Partners Self Signed CA"
 ROOTCN="Partners Self Signed Root CA"
 INTERCN="Partners Self Signed Root CA"
-SERVERCN="parntermovies.com"
-CLIENTCN="Partners_Team"
+SERVERCN=""
+CLIENTCN=""
 
-if [ -z "$1" ]
+
+GENERATE_CA_CERTS=false
+THERE_IS_JOB=false
+while [ "$1" != "" ]; 
+do
+  case $1 in
+    -g|--generate-ca-certs)
+      shift
+      GENERATE_CA_CERTS=$1
+      ;;
+    -s|--server-name)
+      shift
+      SERVERCN=$1
+      THERE_IS_JOB=true
+      ;;
+    -c|--client-name)
+      shift
+      CLIENTCN=$1
+      THERE_IS_JOB=true
+      ;;
+    *)
+      echo "Invalid option: $1"
+      echo "Usage: $0 -s|--server-name your-server-name [-g|--generate-ca-certs] -c|--client-name your-client-certname"
+      exit
+      ;;
+  esac
+  shift  
+done
+
+if [ "$THERE_IS_JOB" != "true"] 
 then 
-		FLAG=WITHOUT_CA_CERTS
-else
-		FLAG=$1
+  echo "You have not specified any of server or client certificate to generate."
+  exit
 fi
+
 
 BASE_HOME_FOLDER=.
 ROOT_HOME_FOLDER=$BASE_HOME_FOLDER/root/ca
@@ -23,7 +52,7 @@ INTER_HOME_FOLDER=$BASE_HOME_FOLDER/root/ca/intermediate
 SERVER_HOME_FOLDER=$BASE_HOME_FOLDER/root/ca/$SERVERCN
 CLIENT_HOME_FOLDER=$BASE_HOME_FOLDER/root/ca/$CLIENTCN
 
-if [ "$FLAG" == "WITH_CA_CERTS" ]
+if [ "$GENERATE_CA_CERTS" == "true" ]
 then
 	rm -rf $ROOT_HOME_FOLDER
 	mkdir -p $ROOT_HOME_FOLDER
@@ -74,22 +103,26 @@ fi
 ################################################################################################
 ######## SET DETAILS OF SERVER CERT HERE #######################################################
 ################################################################################################
-openssl genrsa -out $SERVER_HOME_FOLDER/private/"$SERVERCN".key.pem 2048
-chmod 400 $SERVER_HOME_FOLDER/private/"$SERVERCN".key.pem
-openssl req -config $INTER_HOME_FOLDER/openssl.cnf -key $SERVER_HOME_FOLDER/private/"$SERVERCN".key.pem -new -sha256 -out $SERVER_HOME_FOLDER/csr/"$SERVERCN".csr.pem -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$ORGANIZATION/OU=$ORGUNIT/CN=$SERVERCN"
-openssl ca -batch -config $INTER_HOME_FOLDER/openssl.cnf -extensions server_cert -days 375 -notext -md sha256 -in $SERVER_HOME_FOLDER/csr/"$SERVERCN".csr.pem -out $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
-chmod 444 $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
-openssl verify -CAfile $INTER_HOME_FOLDER/certs/ca-chain.cert.pem $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
-
+if ["$SERVERCN" != ""]
+then
+  openssl genrsa -out $SERVER_HOME_FOLDER/private/"$SERVERCN".key.pem 2048
+  chmod 400 $SERVER_HOME_FOLDER/private/"$SERVERCN".key.pem
+  openssl req -config $INTER_HOME_FOLDER/openssl.cnf -key $SERVER_HOME_FOLDER/private/"$SERVERCN".key.pem -new -sha256 -out $SERVER_HOME_FOLDER/csr/"$SERVERCN".csr.pem -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$ORGANIZATION/OU=$ORGUNIT/CN=$SERVERCN"
+  openssl ca -batch -config $INTER_HOME_FOLDER/openssl.cnf -extensions server_cert -days 375 -notext -md sha256 -in $SERVER_HOME_FOLDER/csr/"$SERVERCN".csr.pem -out $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
+  chmod 444 $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
+  openssl verify -CAfile $INTER_HOME_FOLDER/certs/ca-chain.cert.pem $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
+fi
 ################################################################################################
 ######## SET DETAILS OF CLIENT CERT HERE #######################################################
 ################################################################################################
-#openssl genrsa -out $CLIENT_HOME_FOLDER/private/ssltest.deop.test.key.pem 2048
-#chmod 400 $CLIENT_HOME_FOLDER/private/ssltest.deop.test.key.pem
-# openssl req -config intermediate/openssl.cnf -key client/private/ssltest.deop.test.key.pem -new -sha256 -out client/csr/madhu.csr.pem -subj "/C=GB/ST=England/L=London/O=Partners Self Signed/OU=Partners Self Signed CA/CN=Partners Team"
-# openssl ca -batch -config intermediate/openssl.cnf -extensions usr_cert -days 375 -notext -md sha256 -in client/csr/madhu.csr.pem -out client/certs/madhu.cert.pem
-# chmod 444 client/certs/madhu.cert.pem
-# openssl verify -CAfile intermediate/certs/ca-chain.cert.pem client/certs/madhu.cert.pem
-# cat client/certs/madhu.cert.pem client/private/ssltest.deop.test.key.pem > client/certs/madhu.client.cert.pem
-# chmod 400 client/certs/madhu.client.cert.pem
-
+if ["$CLIENTCN" != ""]
+then
+  openssl genrsa -out $CLIENT_HOME_FOLDER/private/"$CLIENTCN".key.pem 2048
+  chmod 400 $CLIENT_HOME_FOLDER/private/"$CLIENTCN".key.pem
+  openssl req -config $INTER_HOME_FOLDER/openssl.cnf -key $CLIENT_HOME_FOLDER/private/"$CLIENTCN".key.pem -new -sha256 -out $CLIENT_HOME_FOLDER/csr/"$CLIENTCN".csr.pem -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$ORGANIZATION/OU=$ORGUNIT/CN=$CLIENTCN"
+  openssl ca -batch -config $INTER_HOME_FOLDER/openssl.cnf -extensions usr_cert -days 375 -notext -md sha256 -in $CLIENT_HOME_FOLDER/csr/"$CLIENTCN".csr.pem -out $CLIENT_HOME_FOLDER/certs/"$CLIENTCN".cert.pem
+  chmod 444 $CLIENT_HOME_FOLDER/certs/"$CLIENTCN".cert.pem
+  openssl verify -CAfile $INTER_HOME_FOLDER/certs/ca-chain.cert.pem $CLIENT_HOME_FOLDER/certs/"$CLIENTCN".cert.pem
+  cat $CLIENT_HOME_FOLDER/certs/"$CLIENTCN".cert.pem $CLIENT_HOME_FOLDER/private/"$CLIENTCN".key.pem > $CLIENT_HOME_FOLDER/certs/"$CLIENTCN".client.cert.pem
+  chmod 400 $CLIENT_HOME_FOLDER/certs/"$CLIENTCN".client.cert.pem
+fi
