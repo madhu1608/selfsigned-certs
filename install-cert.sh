@@ -6,7 +6,7 @@ LOCATION=London
 ORGANIZATION="Partners Self Signed"
 ORGUNIT="Partners Self Signed CA"
 ROOTCN="Partners Self Signed Root CA"
-INTERCN="Partners Self Signed Root CA"
+INTERCN="Partners Self Signed Inter CA"
 SERVERCN=""
 CLIENTCN=""
 
@@ -107,6 +107,7 @@ then
   openssl ca -batch -config $INTER_HOME_FOLDER/openssl.cnf -extensions server_cert -days 375 -notext -md sha256 -in $SERVER_HOME_FOLDER/csr/"$SERVERCN".csr.pem -out $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
   chmod 644 $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
   openssl verify -CAfile $INTER_HOME_FOLDER/certs/ca-chain.cert.pem $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem
+	cat $SERVER_HOME_FOLDER/certs/"$SERVERCN".cert.pem $INTER_HOME_FOLDER/certs/ca-chain.cert.pem > $SERVER_HOME_FOLDER/certs/"$SERVERCN".chain.cert.pem
 fi
 ################################################################################################
 ######## SET DETAILS OF CLIENT CERT HERE #######################################################
